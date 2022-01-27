@@ -1,9 +1,9 @@
-const UserModel = require("../models").usr;
+const UserModel = require("../models").paket;
 
 const index = async (req, res) => {
   try {
     const dataUser = await UserModel.findAll({
-      attributes: ["id", "name", "email", "status", "jenisKelamin"],
+      attributes: ["id", "codeProduct", "ProductName", "valueProduct", "oneProduct"],
     });
     console.log(dataUser);
 
@@ -46,12 +46,12 @@ const detail = async (req, res) => {
   }
 };
 
-const detailByEmail = async (req, res) => {
+const detailByCode = async (req, res) => {
   try {
-    const { email } = req.params;
+    const { codeProduct } = req.params;
     const users = await UserModel.findOne({
       where: {
-        email: email,
+        codeProduct: codeProduct,
       },
     });
     if (users === null) {
@@ -85,12 +85,12 @@ const destroy = async (req, res) => {
     if (users === 0) {
       return res.status(200).json({
         status: "Gagal",
-        msg: "Data User tidak ditemukan",
+        msg: "Data Product tidak ditemukan",
       });
     }
     return res.json({
       status: "Berhasil",
-      msg: "Data User ditemukan",
+      msg: "Data Product dihapus",
       data: users,
     });
   } catch (error) {
@@ -105,7 +105,7 @@ const destroy = async (req, res) => {
 const update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name } = req.body;
+    const { productName, valueProduct, oneProduct } = req.body;
     const users = await UserModel.findByPk(id);
     if (users === null) {
       return res.json({
@@ -115,7 +115,10 @@ const update = async (req, res) => {
     }
     await UserModel.update(
       {
-        name: name,
+        productName: productName,
+        valueProduct: valueProduct,
+        oneProduct:  oneProduct,
+
       },
       {
         where: {
@@ -125,7 +128,7 @@ const update = async (req, res) => {
     );
     return res.json({
       status : "berhasil",
-      msg : "Data User berhasil diperbarui"
+      msg : "Data Product berhasil diperbarui"
     })
   } catch (err) {
     console.log(error);
@@ -136,4 +139,4 @@ const update = async (req, res) => {
   }
 };
 
-module.exports = { index, detail, detailByEmail, destroy, update };
+module.exports = { index, detail, detailByCode, destroy, update };

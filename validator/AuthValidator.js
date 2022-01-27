@@ -1,27 +1,18 @@
 const { check } = require("express-validator");
-const UserModel = require("../models").usr;
+const UserModel = require("../models").paket;
 
 const registerValidator = [
-  check("name").isLength({ min: 1 }).withMessage("Nama Wajib Diisi"),
-  check("email")
-    .isEmail()
-    .withMessage("Gunakan Email Yang Valid")
+  check("productName").isLength({ min: 1 }).withMessage("Product Wajib Diisi"),
+  check("valueProduct").isLength({ min: 1 }).withMessage("jumlah Product Wajib Diisi"),
+  check("oneProduct").isLength({ min: 1 }).withMessage("harga Product Wajib Diisi"),
+  check("codeProduct")
     .custom((value) => {
-      return UserModel.findOne({ where: { email: value } }).then((user) => {
+      return UserModel.findOne({ where: { codeProduct: value } }).then((user) => {
         if (user) {
-          return Promise.reject("Email Telah Digunakan");
+          return Promise.reject("Code Telah Digunakan");
         }
       });
     }),
-  check("password")
-    .isLength({ min: 8 })
-    .withMessage("Password Minimal 8 Karakter"),
-  check("status")
-    .isIn(["active", "nonActive"])
-    .withMessage("Masukan Status Anda Dengan Benar"),
-  check("jenisKelamin")
-    .isIn(["laki-laki", "perempuan"])
-    .withMessage("Masukan Jenis Kelamin Anda Dengan Benar"),
 ];
 
 
