@@ -25,4 +25,5 @@ const registerValidator = [
 ];
 
 
+
 module.exports={registerValidator}
