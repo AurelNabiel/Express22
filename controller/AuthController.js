@@ -59,4 +59,40 @@ const login = async (req, res) => {
   } catch (err) {}
 };
 
-module.exports = { register, login };
+const authme = async (req, res) => {
+  const { authorization } = req.headers;
+  const token = authorization.split(" ")[1];
+  jwt.verify(token, process.env.JWT_ACCESS_TOKEN, async (err, decode) => {
+    if (err) {
+      return res.status(401).json({
+        status: "fail",
+        msg: "invalid",
+        data: err,
+      });
+    } else {
+      try {
+        req.email = decode?.email;
+        const token = jwt.sign(
+          {
+            email: req.email,
+          },
+          process.env.JWT_ACCESS_TOKEN,
+          { expiresIn: "1d" }
+        );
+        return res.json({
+          status: "succes",
+          msg: "Berhasil mendapat Token baru",
+          token: token,
+        });
+      } catch (error) {
+        return res.status(401).json({
+          status: "fail",
+          msg: "invalid",
+          data: error,
+        });
+      }
+    }
+  });
+};
+
+module.exports = { register, login,authme };

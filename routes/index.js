@@ -1,6 +1,7 @@
 const express = require("express");
-const { register, login } = require("../controller/AuthController");
-const { index, detail, detailByEmail, destroy, update } = require("../controller/UserController");
+const { register, login, authme } = require("../controller/AuthController");
+const paginationMiddleware = require("../middleware/paginationMiddleware")
+const { index, detail, detailByEmail, destroy, update, createMany } = require("../controller/UserController");
 const validationMiddleware = require("../middleware/ValidationMiddleware");
 const { registerValidator } = require("../validator/AuthValidator");
 const jwtMiddleware = require("../middleware/jwtMiddleware")
@@ -12,10 +13,19 @@ router.get("/", (req, res) => {
     status: "Ok",
   });
 });
+router.post("/register", registerValidator, validationMiddleware, register);
+// LOGIN //
+router.post("/login", login);
+//CREATE//
+router.post("/users/create", createMany)
 
-router.use(jwtMiddleware)
+
+// router.use(jwtMiddleware)
+router.use(paginationMiddleware)
 // GET USER ALL //
 router.get('/users',index)
+// AUTHME //
+router.get("/authme", authme);
 // GET USER DETAIL // 
 router.get('/users/:id',detail)
 //GET USER EMAIL//
@@ -25,9 +35,7 @@ router.delete('/users/:id',destroy)
 // UPDATE //
 router.put('/users/update/:id',update)
 // REGISTER //
-router.post("/register", registerValidator, validationMiddleware, register);
-// LOGIN //
-router.post("/login", login);
+
 
 
 

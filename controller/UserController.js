@@ -1,9 +1,52 @@
 const UserModel = require("../models").usr;
+const bcrypt = require("bcrypt");
+const { promise } = require("bcrypt/promises");
+const { Op } = require("sequelize");
 
 const index = async (req, res) => {
   try {
+    const { keyword , page, pageSize } = req.query;
+
     const dataUser = await UserModel.findAll({
-      attributes: ["id", "name", "email", "status", "jenisKelamin"],
+      attributes: ["id", ["name", "nama"], "email", "status", "jenisKelamin"],
+      where: {
+        // [Op.or] :{
+        //   name : name,
+        //   id : 3
+        // }
+        // name : {
+        //   [Op.eq] : name
+        // }
+        // name : {
+        //   [Op.ne] : name
+        // }
+        // id : {
+        //   [Op.gt] : 3
+        // }
+        //   name : {
+        //     [Op.like] : "%una"
+        //   }
+        [Op.or]: [
+          {
+            name: {
+              [Op.like]: `${keyword}%`,
+            },
+          },
+          {
+            email: {
+              [Op.like]: `%${keyword}%`,
+            },
+          },
+          {
+            jeniskelamin: {
+              [Op.like]: `${keyword}%`,
+            },
+          },
+        ],
+      },
+      limit : pageSize, //banyak data yang ditampilkan
+      offset : page, //mulai dari +1
+      order : [['id','ASC']] // untuk mengurutkan data
     });
     console.log(dataUser);
 
@@ -124,9 +167,9 @@ const update = async (req, res) => {
       }
     );
     return res.json({
-      status : "berhasil",
-      msg : "Data User berhasil diperbarui"
-    })
+      status: "berhasil",
+      msg: "Data User berhasil diperbarui",
+    });
   } catch (err) {
     console.log(error);
     return res.status(403).json({
@@ -136,4 +179,39 @@ const update = async (req, res) => {
   }
 };
 
-module.exports = { index, detail, detailByEmail, destroy, update };
+async function createMany(req, res) {
+  let { payload } = req.body;
+  for (i = 0; i < payload.length; i++) {
+    payload[i].password = await bcrypt.hashSync(payload[i].password, 10);
+  }
+
+  try {
+    // await UserModel.bulkCreate(payload);
+    let countBerhasil = 0;
+    let countGagal = 0;
+    await promise.all(
+      payload.map(async (data) => {
+        try {
+          await UserModel.create(data);
+          countBerhasil = countBerhasil + 1;
+        } catch (err) {
+          countGagal = countGagal + 1;
+        }
+      })
+    );
+
+    return res.status(201).json({
+      status: "Berhasil",
+      messege: "User Berhasil Ditambahkan",
+      status: `Berhasil menambahkan ${countBerhasil} data dan gagal ${countGagal} data`,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(403).json({
+      status: "Gagal",
+      messege: "Ada Kesalahan",
+    });
+  }
+}
+
+module.exports = { index, detail, detailByEmail, destroy, update, createMany };
