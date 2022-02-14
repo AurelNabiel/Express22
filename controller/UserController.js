@@ -5,7 +5,8 @@ const { Op } = require("sequelize");
 
 const index = async (req, res) => {
   try {
-    const { keyword , page, pageSize } = req.query;
+    let { keyword , page, pageSize,orderBy,sortBy } = req.query;
+   
 
     const dataUser = await UserModel.findAll({
       attributes: ["id", ["name", "nama"], "email", "status", "jenisKelamin"],
@@ -46,7 +47,7 @@ const index = async (req, res) => {
       },
       limit : pageSize, //banyak data yang ditampilkan
       offset : page, //mulai dari +1
-      order : [['id','ASC']] // untuk mengurutkan data
+      order : [[sortBy,orderBy]] // untuk mengurutkan data
     });
     console.log(dataUser);
 
