@@ -1,14 +1,15 @@
 const UserModel = require("../models").usr;
+const Identitas = require("../models").identitas
+const Nilai = require("../models").nilai
+
 const bcrypt = require("bcrypt");
 const { promise } = require("bcrypt/promises");
 const { Op } = require("sequelize");
 
 const index = async (req, res) => {
   try {
-    let { keyword , page, pageSize,orderBy,sortBy } = req.query;
-   
-
-    const dataUser = await UserModel.findAll({
+    let { keyword , page, pageSize,orderBy,sortBy,pageActive } = req.query;
+    const dataUser = await UserModel.findAndCountAll({
       attributes: ["id", ["name", "nama"], "email", "status", "jenisKelamin"],
       where: {
         // [Op.or] :{
@@ -27,6 +28,7 @@ const index = async (req, res) => {
         //   name : {
         //     [Op.like] : "%una"
         //   }
+       ...(keyword !== undefined && {
         [Op.or]: [
           {
             name: {
@@ -44,17 +46,39 @@ const index = async (req, res) => {
             },
           },
         ],
+       })
+        
+       
       },
+      include:[{
+        model:Identitas,
+        require:true,
+        as:"identitas",
+        attributes:["id","nama","alamat","tempatlahir","tanggalLahir"],
+      },
+    {
+      model:Nilai,
+      require:true,
+      as:"nilai",
+      attributes:["id","nilai"],
+    }],
       limit : pageSize, //banyak data yang ditampilkan
       offset : page, //mulai dari +1
       order : [[sortBy,orderBy]] // untuk mengurutkan data
     });
     console.log(dataUser);
-
     return res.json({
       status: "Berhasil",
       messege: "Berikut Daftar Users",
       data: dataUser,
+      pagination: {
+        page: pageActive,
+        nextPage: page +1,
+        previousPage: pageActive +1,
+        pageSize: pageSize,
+        jumlah: dataUser.rows.length,
+        total: dataUser.count,
+      },
     });
   } catch (error) {
     console.log(error);
